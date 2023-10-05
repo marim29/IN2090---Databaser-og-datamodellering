@@ -1,0 +1,95 @@
+
+IN2090 Oblig 4 - Normalformer			Mari K. Myrvold
+
+
+Oppgave 1 - Lage databaser
+CREATE TABLE Tog (
+	togNr SERIAL PRIMARY KEY,
+	startStasjon varchar(50) NOT NULL,
+	endeStasjon varchar(50),
+	ankomstTid time
+);
+CREATE TABLE TogTabell (
+	togNr int REFERENCES Tog (togNr),
+	avgangsTid time,
+	stasjon varchar(50),
+	CONSTRAINT PK_TogTabell PRIMARY KEY (togNr, avgangsTid)
+);
+CREATE TABLE Plass (
+	dato date,
+	togNr int REFERENCES Tog (togNr),
+	vognNr int,
+	plassNr int,
+	vindu varchar(3),
+	ledig varchar(3),
+	CONSTRAINT PK_Plass PRIMARY KEY (dato, togNr, vognNr, plassNr)
+);
+
+TogNr settes som 'serial' i Tog-tabellen, slik at de blir automatisk generert, og startStasjon med constraint 'NOT NULL', siden toget må
+starte et sted. 
+I TogTabell og Plass settes togNr som fremmednøkkel til togNr i Tog med 'references'. 
+Stasjonsnavn får typen 'varchar' avgrenset til 50 tegn, som er plassbesparende sammenlignet med 'char' som alltid setter av 100 tegn.
+TogTabell og Plass har primary key med flere attributter, en såkalt kombinasjonsnøkkel, så de er lagt til som en egen constraint på 
+slutten av hver tabell-opprettelse.
+'Vindu' og 'ledig' er satt til varchar med en begrensning på tre tegn, for 'ja' eller 'nei'.
+
+
+
+
+Oppgave 2 - FDer og Normalformer
+a) Gitt relasjonen R(A,B,C,D,E,F,G), 
+     La Q = {CDE --> B, AF --> B, B --> A, BCF --> DE, D --> G}.
+Attributter som ikke forekommer i høyresider: C og F. C og F skal være med i en kandidatnøkkel.
+Attributter som bare forekommer i høyresider:  G. G skal ikke være med i en kandidatnøkkel.
+Begynner med CF og utvider med A, B, D, E:
+1. X = CF. CF+ = CF. CF er ikke en kandidatnøkkel.
+	2. Utvider X med A, B, D, E.
+		2.1 X = ACF. ACF+ = ACF U B = ACFB U DE = ACFBDE U G = ACFBDEG. ACF er en kandidatnøkkel.
+		2.2 X = BCF. BCF+ = BCF U A U DE = BCFADE U G = BCFADEG. BCF er en kandidatnøkkel.
+		2.3 X = CFD. CFD+ = CFD U G = CFDG. CFD  er ikke en kandidatnøkkel.
+		2.4 X = CFE. CFE+ = CFE. CFE er ikke en kandidatnøkkel.
+		2.4 Fortsetter med X = CFD, og utvider med B, E.
+			2.4.1 X = BCFD. BCFD+ = BCFD U DE U A U G = BCFDEAG. Men BCF er en kandidatnøkkel, så BCFD er ikke minimal, og ikke kandidatnøkkel.
+			2.4.2 X = CFDE. CFDE+ = CFDE U B U G = BCFDEG U A = BCFDEAG. CFDE er en kandidatnøkkel.
+		2.5 Fortsetter med X = CFE, og utvider med B, D.
+			2.5.1 X = BCFE. BCFE+ = BCFEDAG. Men BCF er kandidatnøkkel, så BCFE er ikke minimal, og ikke kandidatnøkkel. 
+			2.5.2 X = CFED. CFED+ = CFEDBAG. CFED er en kandidatnøkkel.
+Kandidatnøkler er: ACF, BCF og CFDE (/CFED).
+
+b) Finner den høyeste normalformen som R tilfredsstiller:
+Kandidatnøkler: ACF, BCF, CFED.	
+Supernøkler: ACF, BCF, CFED, BCFD, BCFE.
+FD-er: 1. CDE -> B
+	 2. AF -> B
+	 3. B -> A
+	 4. BCF -> DE
+	 5. D -> G
+Starter på valgfri FD: 
+4. BCF -> DE. 		BCF er en supernøkkel. 			BCNF så langt.
+5. D -> G		D er ikke en supernøkkel. 		Brudd på BCNF.
+5. D -> G		G er ikke en nøkkelattributt. 		Brudd på 3NF.
+5. D -> G		D er del av en kandidatnøkkel (CFED).	Brudd på 2NF.
+			Relasjonen er derfor på 1NF, som vi antar alltid er tilfellet.
+
+c) Tapsfri dekomponering av R til BCNF:
+Nøkler: C og F er med i alle nøkler. G er ikke med i noen nøkler.
+Kandidatnøkler: ACF, BCF, CFED.
+Supernøkler: ACF, BCF, CFED, BCFD, BCFE.
+
+R(A,B,C,D,E,F,G).
+FDer: 	CDE --> B 
+	AF --> B 
+	B --> A 
+	BCF --> DE 
+	D --> G
+
+CDE -> B er brudd på BCNF, siden CDE ikke er en supernøkkel, men ikke på 3NF, siden B er en nøkkelattributt.
+	Beregner CDE+:
+	CDE+ = CDEBAG. Dekomponerer R til R1(CDEBAG) og R2(CDEF). 
+		CDEF er en supernøkkel, og oppfyller BCNF. R1 oppfyller ikke BCNF, og kan ikke dekomponeres videre.
+	Fortsetter med neste FD: AF -> B
+	AF+ = AFB. Dekomponerer til R3(AFB) og R4(AFCDG). 
+		R3(AFB) er en FD og oppfyller BCNF. R4 oppfyller ikke BCNF. 
+		Dekomponerer R4 til R5(AFC) og R6(DG).
+			R5(AFC) er en supernøkkel og oppfyller BCNF, og R6(DG) er en FD, og oppfyller BCNF.
+			Sitter igjen med: R2(CDEF), R3(AFB), R5(AFC) og R6(DG).

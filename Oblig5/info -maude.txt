@@ -1,0 +1,8 @@
+-Manual til Maude:
+https://www.mn.uio.no/ifi/tjenester/it/hjelp/startpakke/Programmer/Felles/Maude/maude-manual.pdf
+
+-Forelesningsark:
+http://folk.uio.no/peterol/IN2100V20/Forelesninger/f20-2.pdf
+
+-Obligen:
+https://folk.uio.no/peterol/IN2100V20/Oppgaver/oblig1.html
